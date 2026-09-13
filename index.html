@@ -1,1 +1,26 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DK Charts</title><script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script><style>body{margin:0;background:#131722;color:#fff;font-family:Arial}header{padding:12px;background:#1e222d;display:flex;gap:8px;overflow:auto}button{padding:8px 12px;border:0;border-radius:6px;background:#2a2e39;color:#fff}button.active{background:#2962ff}#chart{height:85vh}</style></head><body><header><button class="active" onclick="load('BTCUSDT')">BTC</button><button onclick="load('ETHUSDT')">ETH</button><button onclick="load('XAUUSDT')">GOLD</button></header><div id="chart"></div><script>const el=document.getElementById('chart');const chart=LightweightCharts.createChart(el,{layout:{background:{color:'#131722'},textColor:'#ccc'}});const candle=chart.addCandlestickSeries();async function load(sym){const r=await fetch('https://api.binance.com/api/v3/klines?symbol='+sym+'&interval=1h&limit=300');const d=await r.json();candle.setData(d.map(k=>({time:k[0]/1000,open:+k[1],high:+k[2],low:+k[3],close:+k[4]})))}load('BTCUSDT');</script></body></html>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DK Charts</title><script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script><style>body{margin:0;background:#131722;color:#fff;font-family:Arial}header{padding:12px;background:#1e222d;display:flex;gap:8px;overflow:auto}button{padding:8px 12px;border:0;border-radius:6px;background:#2a2e39;color:#fff;cursor:pointer}button.active{background:#2962ff}#chart{height:85vh;width:100vw}</style></head><body><header><button id="BTCUSDT" class="active" onclick="load('BTCUSDT')">BTC</button><button id="ETHUSDT" onclick="load('ETHUSDT')">ETH</button><button id="PAXGUSDT" onclick="load('PAXGUSDT')">GOLD</button></header><div id="chart"></div><script>
+const el=document.getElementById('chart');
+const chart=LightweightCharts.createChart(el,{
+  width: el.clientWidth,
+  height: window.innerHeight*0.85,
+  layout:{background:{color:'#131722'},textColor:'#ccc'},
+  grid:{vertLines:{color:'#1e222d'},horzLines:{color:'#1e222d'}},
+  rightPriceScale:{autoScale:true},
+  timeScale:{rightBarStaysOnScroll:true}
+});
+const candle=chart.addCandlestickSeries({upColor:'#26a69a',downColor:'#ef5350',borderVisible:false,wickUpColor:'#26a69a',wickDownColor:'#ef5350'});
+
+async function load(sym){
+  document.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(sym)?.classList.add('active');
+  try{
+    const r=await fetch('https://api.binance.com/api/v3/klines?symbol='+sym+'&interval=1h&limit=300');
+    const d=await r.json();
+    const data=d.map(k=>({time:k[0]/1000,open:+k[1],high:+k[2],low:+k[3],close:+k[4]}));
+    candle.setData(data);
+    chart.timeScale().fitContent();
+  }catch(e){console.log(e)}
+}
+new ResizeObserver(()=>{chart.applyOptions({width:el.clientWidth})}).observe(el);
+load('BTCUSDT');
+</script></body></html>
